@@ -89,6 +89,26 @@ src
             └── exemplo
                 ├── controller       # Testes de controladores
                 └── service          # Testes de serviços
+
+UserAuthService/
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   │   └── com/
+│   │   │       └── exemplo/
+│   │   │           └── usermanagement/
+│   │   │               ├── UserManagementSystemApplication.java
+│   │   │               ├── controller/
+│   │   │               ├── model/
+│   │   │               ├── repository/
+│   │   │               ├── security/
+│   │   │               └── service/
+│   │   ├── resources/
+│   │   │   ├── application.properties
+│   │   │   └── static/
+├── pom.xml
+└── .gitignore
+
 Contribuições
 Contribuições são bem-vindas! Se você tiver sugestões ou melhorias, fique à vontade para abrir um pull request ou issue.
 
