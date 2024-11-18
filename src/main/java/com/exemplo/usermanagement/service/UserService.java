@@ -9,7 +9,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class UserService {
@@ -25,15 +24,15 @@ public class UserService {
 
     // Registrar um novo usuário
     public User registerUser(UserDTO userDTO) {
-        // Verifica se o nome de usuário ou e-mail já existem no banco de dados
+        System.out.println("Recebendo solicitação de registro do usuário: " + userDTO);
+        // 
         if (userRepository.existsByUsername(userDTO.getUsername())) {
             throw new RuntimeException("Username is already taken");
         }
         if (userRepository.existsByEmail(userDTO.getEmail())) {
             throw new RuntimeException("Email is already taken");
         }
-
-        // Criação de um novo usuário
+    
         User newUser = new User();
         newUser.setUsername(userDTO.getUsername());
         newUser.setEmail(userDTO.getEmail());
@@ -41,6 +40,7 @@ public class UserService {
         newUser.setRole(userDTO.getRole());
         return userRepository.save(newUser);
     }
+    
 
     // Login de um usuário - gera um token JWT
     public String loginUser(UserDTO userDTO) {

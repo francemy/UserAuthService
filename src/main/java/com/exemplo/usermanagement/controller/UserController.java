@@ -1,4 +1,5 @@
 package com.exemplo.usermanagement.controller;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,8 +15,6 @@ import com.exemplo.usermanagement.security.JwtTokenUtil;
 import com.exemplo.usermanagement.service.UserService;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
-
 @RestController
 @RequestMapping("/api/v1/users")
 public class UserController {
@@ -31,11 +30,14 @@ public class UserController {
 
     // Endpoint para registro de novos usuários
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody UserDTO userDTO) {
-        User newUser = userService.registerUser(userDTO);
-        return new ResponseEntity<>(newUser, HttpStatus.CREATED);
+    public ResponseEntity<User> registerUser(@RequestBody UserDTO userDTO) {
+        try {
+            User newUser = userService.registerUser(userDTO);
+            return new ResponseEntity<>(newUser, HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
-
     // Endpoint para login de usuários (gera token JWT)
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody UserDTO userDTO) {
