@@ -6,64 +6,52 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
+@EnableWebSecurity
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    // Injeta o filtro JWT por meio do construtor
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
-    /**
-     * Configura o AuthenticationManager, usado para autenticar usuários.
-     */
+    // Configuração do AuthenticationManager para ser usado na autenticação
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
     }
 
-    /**
-     * Define o PasswordEncoder usado para criptografar senhas.
-     */
+    // Bean para criptografia de senhas
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new BCryptPasswordEncoder(); // Instanciando o NoOpPasswordEncoder
     }
 
-    /**
-     * Configuração da cadeia de filtros de segurança.
-     */
+    // Configuração da cadeia de segurança
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-            // Desativa a proteção contra CSRF (não necessária para APIs RESTful)
+public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http
+            // Desativa a proteção CSRF (não necessária para APIs RESTful)
             .csrf(csrf -> csrf.disable())
-            /*  configura a política de sessão para STATELESS, ideal para APIs que usam tokens e não mantêm estado entre as requisições. */
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
             // Configura as regras de autorização
-            .authorizeHttpRequests(authorize -> authorize
-                // Define os endpoints públicos
-                .requestMatchers("/api/v1/users/register", "/api/v1/users/login").permitAll()
-                // Todas as outras solicitações requerem autenticação
-                .anyRequest().authenticated()
+            .authorizeHttpRequests(auth -> auth
+                    .requestMatchers(HttpMethod.POST, "/api/v1/users/register", "/api/v1/users/login").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/users/profile", "/api/v1/users/login").permitAll() // Endpoints públicos
+                     // Permite acesso à página de login
+                    .anyRequest().authenticated() // Todas as outras rotas precisam de autenticação
             )
-
-            // Desativa o formulário de login padrão e autenticação HTTP básica
-            .formLogin(form -> form.disable())
-            .httpBasic(httpBasic -> httpBasic.disable())
 
             // Adiciona o filtro JWT antes do UsernamePasswordAuthenticationFilter
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-        return http.build();
-    }
+    return http.build();
+}
 }

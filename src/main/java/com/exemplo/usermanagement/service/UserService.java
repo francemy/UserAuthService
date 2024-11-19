@@ -1,38 +1,45 @@
 package com.exemplo.usermanagement.service;
 
+import com.exemplo.usermanagement.dto.JwtPayload;
 import com.exemplo.usermanagement.dto.UserDTO;
+import com.exemplo.usermanagement.dto.loginUserDTO;
 import com.exemplo.usermanagement.model.User;
+import com.exemplo.usermanagement.model.UserSession;
 import com.exemplo.usermanagement.repository.UserRepository;
+import com.exemplo.usermanagement.repository.UserSessionRepository;
 import com.exemplo.usermanagement.security.JwtTokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 public class UserService {
+    @Autowired
+    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();;
 
     @Autowired
     private UserRepository userRepository;
 
     @Autowired
-    private JwtTokenUtil jwtTokenUtil;
+    private UserSessionService userSessionService;
 
     @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
+    private JwtTokenUtil jwtTokenUtil;
 
     // Registrar um novo usuário
     public User registerUser(UserDTO userDTO) {
         System.out.println("Recebendo solicitação de registro do usuário: " + userDTO);
-        // 
+        //
         if (userRepository.existsByUsername(userDTO.getUsername())) {
             throw new RuntimeException("Username is already taken");
         }
         if (userRepository.existsByEmail(userDTO.getEmail())) {
             throw new RuntimeException("Email is already taken");
         }
-    
+
         User newUser = new User();
         newUser.setUsername(userDTO.getUsername());
         newUser.setEmail(userDTO.getEmail());
@@ -40,20 +47,28 @@ public class UserService {
         newUser.setRole(userDTO.getRole());
         return userRepository.save(newUser);
     }
-    
 
     // Login de um usuário - gera um token JWT
-    public String loginUser(UserDTO userDTO) {
-        User user = userRepository.findByUsername(userDTO.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    public String loginUser(loginUserDTO userDTO) {
+        System.out.println("Entrou no método loginUser com o username: " + userDTO.getUsername());
 
-        // Verifica se a senha fornecida é válida
+        User user = userRepository.findByUsername(userDTO.getUsername())
+                .orElseThrow(() -> {
+                    System.out.println("Usuário não encontrado: " + userDTO.getUsername());
+                    return new RuntimeException("User not found");
+                });
+
         if (!passwordEncoder.matches(userDTO.getPassword(), user.getPassword())) {
+            System.out.println("Senha inválida para o username: " + userDTO.getUsername());
             throw new RuntimeException("Invalid password");
         }
+        JwtPayload payload = new JwtPayload(user.getUsername(), user.getEmail(), user.getId());
 
-        // Gerar o token JWT
-        return jwtTokenUtil.generateToken(userDTO.getUsername());
+        String token = jwtTokenUtil.generateToken(payload);
+        userSessionService.saveUserSession(payload.getUserId(), token);
+
+        System.out.println("Token gerado com sucesso para o username: " + userDTO.getUsername());
+        return token;
     }
 
     // Recuperar um usuário pelo nome de usuário
@@ -63,7 +78,7 @@ public class UserService {
     }
 
     // Atualizar um usuário
-    public User updateUser(String id, UserDTO userDTO) {
+    public User updateUser(Long id, UserDTO userDTO) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -75,7 +90,7 @@ public class UserService {
     }
 
     // Deletar um usuário
-    public void deleteUser(String id) {
+    public void deleteUser(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 

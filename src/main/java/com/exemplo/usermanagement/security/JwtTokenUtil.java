@@ -6,33 +6,35 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys; //
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Date;
-import java.security.Key;
-import java.util.Base64;
+import org.springframework.stereotype.Component;
 
+import com.exemplo.usermanagement.dto.JwtPayload;
+
+import java.security.Key;
+@Component
 public class JwtTokenUtil {
 
-    private static final String SECRET_KEY = "mySecretKey"; // Substitute with your secure secret key
+    private static final Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS512); // Use Key diretamente
     private static final String TOKEN_PREFIX = "Bearer ";
     private static final String HEADER_STRING = "Authorization";
     private static final long EXPIRATION_TIME = 864_000_00L; // 10 days in milliseconds
-    
 
     // Method to generate the JWT token
-    public String generateToken(String username) {
-        Key key = Keys.hmacShaKeyFor(Base64.getDecoder().decode(SECRET_KEY)); // Decode the secret key and create Key
+    public String generateToken(JwtPayload payload) {
         return Jwts.builder()
-                .setSubject(username)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(key, SignatureAlgorithm.HS512) // Use the key for signing
-                .compact();
+        .setSubject(payload.getUsername())  // Define o nome de usuário
+        .claim("email", payload.getEmail()) // Adiciona o e-mail
+        .claim("userId", payload.getUserId()) // Adiciona o ID do usuário
+        .setIssuedAt(new Date()) // Define a data de emissão
+        .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME)) // Define a data de expiração
+        .signWith(SECRET_KEY, SignatureAlgorithm.HS512) // Define o algoritmo de assinatura
+        .compact(); // Gera o token JWT
     }
 
     // Method to validate the token
     public boolean validateToken(String token) {
         try {
-            Key key = Keys.hmacShaKeyFor(Base64.getDecoder().decode(SECRET_KEY)); // Decode the key for validation
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token); // Use the key for validation
+            Jwts.parserBuilder().setSigningKey(SECRET_KEY).build().parseClaimsJws(token); // Usando a chave diretamente
             return true;
         } catch (Exception e) {
             return false; // Return false if there's an error during validation
@@ -41,8 +43,7 @@ public class JwtTokenUtil {
 
     // Method to extract the username from the token
     public String getUsernameFromToken(String token) {
-        Key key = Keys.hmacShaKeyFor(Base64.getDecoder().decode(SECRET_KEY)); // Decode the key for extraction
-        Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+        Claims claims = Jwts.parserBuilder().setSigningKey(SECRET_KEY).build().parseClaimsJws(token).getBody();
         return claims.getSubject();
     }
 
