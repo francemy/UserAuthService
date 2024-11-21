@@ -44,8 +44,9 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
             // Configura as regras de autorização
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers(HttpMethod.POST, "/api/v1/users/register", "/api/v1/users/login").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/v1/users/profile", "/api/v1/users/login").permitAll() // Endpoints públicos
-                     // Permite acesso à página de login
+                    .requestMatchers(HttpMethod.GET, "/api/v1/users/profile").permitAll() // Endpoints públicos
+                    .requestMatchers( "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html","/api-docs",//
+                                                "/test").permitAll() // Permite acesso à página de login
                     .anyRequest().authenticated() // Todas as outras rotas precisam de autenticação
             )
 

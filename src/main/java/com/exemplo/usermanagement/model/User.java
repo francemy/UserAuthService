@@ -27,7 +27,7 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "varchar(5) default 'USER'")
     private String role;
 
     @Column(name = "created_at", updatable = false)

@@ -3,6 +3,8 @@ package com.exemplo.usermanagement.service;
 import com.exemplo.usermanagement.dto.JwtPayload;
 import com.exemplo.usermanagement.dto.UserDTO;
 import com.exemplo.usermanagement.dto.loginUserDTO;
+import com.exemplo.usermanagement.exception.InvalidPasswordException;
+import com.exemplo.usermanagement.exception.UserNotFoundException;
 import com.exemplo.usermanagement.model.User;
 import com.exemplo.usermanagement.model.UserSession;
 import com.exemplo.usermanagement.repository.UserRepository;
@@ -48,28 +50,27 @@ public class UserService {
         return userRepository.save(newUser);
     }
 
-    // Login de um usuário - gera um token JWT
-    public String loginUser(loginUserDTO userDTO) {
-        System.out.println("Entrou no método loginUser com o username: " + userDTO.getUsername());
+   // Método loginUser melhorado
+public String loginUser(loginUserDTO userDTO) {
 
-        User user = userRepository.findByUsername(userDTO.getUsername())
-                .orElseThrow(() -> {
-                    System.out.println("Usuário não encontrado: " + userDTO.getUsername());
-                    return new RuntimeException("User not found");
-                });
+    User user = userRepository.findByUsername(userDTO.getUsername())
+            .orElseThrow(() -> {
+                System.out.println("Usuário não encontrado: " + userDTO.getUsername());
+                throw new UserNotFoundException(userDTO.getUsername());
+            });
 
-        if (!passwordEncoder.matches(userDTO.getPassword(), user.getPassword())) {
-            System.out.println("Senha inválida para o username: " + userDTO.getUsername());
-            throw new RuntimeException("Invalid password");
-        }
-        JwtPayload payload = new JwtPayload(user.getUsername(), user.getEmail(), user.getId());
-
-        String token = jwtTokenUtil.generateToken(payload);
-        userSessionService.saveUserSession(payload.getUserId(), token);
-
-        System.out.println("Token gerado com sucesso para o username: " + userDTO.getUsername());
-        return token;
+    if (!passwordEncoder.matches(userDTO.getPassword(), user.getPassword())) {
+        System.out.println("Senha inválida para o username: " + userDTO.getUsername());
+        throw new InvalidPasswordException();
     }
+    
+    JwtPayload payload = new JwtPayload(user.getUsername(), user.getEmail(), user.getId());
+
+    String token = jwtTokenUtil.generateToken(payload);
+    userSessionService.saveUserSession(payload.getUserId(), token);
+
+    return token;
+}
 
     // Recuperar um usuário pelo nome de usuário
     public User getUserByUsername(String username) {

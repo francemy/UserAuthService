@@ -1,15 +1,20 @@
 package com.exemplo.usermanagement.controller;
 
+import java.security.Principal;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+
+import com.exemplo.usermanagement.dto.JwtResponseDTO;
 import com.exemplo.usermanagement.dto.UserDTO;
 import com.exemplo.usermanagement.dto.loginUserDTO;
+import com.exemplo.usermanagement.exception.InvalidPasswordException;
+import com.exemplo.usermanagement.exception.UserNotFoundException;
 import com.exemplo.usermanagement.model.User;
 import com.exemplo.usermanagement.security.JwtTokenUtil;
 import com.exemplo.usermanagement.service.UserService;
@@ -26,9 +31,6 @@ public class UserController {
 
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
-
-    @Autowired
-    private AuthenticationManager authenticationManager;
 
     // Endpoint para registro de novos usuários
     @PostMapping("/register")
@@ -50,49 +52,68 @@ public class UserController {
     // Endpoint para login de usuários (gera token JWT)
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody @Valid loginUserDTO userDTO, BindingResult bindingResult) {
-        // Validação de dados
         if (bindingResult.hasErrors()) {
-            System.out.println("Erro na validação do JSON ou campos ausentes.");
             return ResponseEntity.badRequest().body("Erro: JSON inválido ou campos obrigatórios ausentes.");
         }
 
         try {
-            System.out.println("Tentando autenticar usuário: " + userDTO.getUsername());
-
             String jwt = userService.loginUser(userDTO);
-            System.out.println("Autenticação bem-sucedida, gerando token JWT.");
-            return ResponseEntity.ok(new JwtResponse(jwt));
-
+            return ResponseEntity.ok(new JwtResponseDTO(jwt));
+        } catch (InvalidPasswordException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Senha inválida.");
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado.");
         } catch (Exception e) {
-            System.out.println("Falha na autenticação: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login falhou: Credenciais inválidas.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao tentar autenticar o usuário.");
         }
     }
 
-    // Endpoint para obter informações do usuário (apenas para usuários
-    // autenticados)
+    // Endpoint para obter informações do usuário (apenas para usuários autenticados)
     @GetMapping("/profile")
     public ResponseEntity<User> getProfile(HttpServletRequest request) {
         String token = jwtTokenUtil.getTokenFromRequest(request);
         if (token == null || !jwtTokenUtil.validateToken(token)) {
-            System.out.println("Token inválido ou ausente");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         String username = jwtTokenUtil.getUsernameFromToken(token);
-        System.out.println("Usuário autenticado: " + username);
         User user = userService.getUserByUsername(username);
         return ResponseEntity.ok(user);
     }
 
     // Endpoint para listar todos os usuários (somente administradores)
     @GetMapping
-    public ResponseEntity<?> getAllUsers() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.getAuthorities().stream()
-                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"))) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build(); // Somente administradores
+    public ResponseEntity<?> getAllUsers(@RequestHeader(value = "Authorization") String authorizationHeader,
+                                         Principal principal) {
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token JWT ausente ou malformado.");
         }
-        return ResponseEntity.ok(userService.getAllUsers());
+
+        String token = authorizationHeader.substring(7); // Remover "Bearer " do início do token
+        if (!jwtTokenUtil.validateToken(token)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Token inválido.");
+        }
+
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuário não autenticado.");
+        }
+
+        Authentication authentication = (Authentication) principal;
+        if (!authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Acesso negado. Somente administradores podem acessar.");
+        }
+
+        try {
+            var users = userService.getAllUsers();
+            if (users == null || users.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Nenhum usuário encontrado.");
+            }
+            return ResponseEntity.ok(users);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erro ao tentar buscar os usuários: " + e.getMessage());
+        }
     }
 
     // Endpoint para atualizar um usuário
@@ -108,22 +129,4 @@ public class UserController {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
-
-    // Classe para encapsular a resposta do token JWT
-    public static class JwtResponse {
-        private String token;
-
-        public JwtResponse(String token) {
-            this.token = token;
-        }
-
-        public String getToken() {
-            return token;
-        }
-
-        public void setToken(String token) {
-            this.token = token;
-        }
-    }
-
 }
