@@ -1,0 +1,44 @@
+# Ignora diretórios de build do Maven e Gradle
+target/
+build/
+
+# Ignora arquivos de dependências do Maven ou Gradle
+**/target/
+**/build/
+
+# Ignora arquivos de configuração específicos de IDEs (IntelliJ, Eclipse, VSCode)
+.idea/
+.vscode/
+*.iml
+
+# Ignora arquivos do sistema operacional (como .DS_Store no macOS)
+.DS_Store
+Thumbs.db
+
+# Ignora arquivos de log
+*.log
+*.out
+
+# Ignora arquivos de configuração local (por exemplo, configurações específicas de ambiente)
+application-local.yml
+application-dev.yml
+application-prod.yml
+*.properties
+
+# Ignora diretórios de testes
+test-classes/
+test-output/
+
+# Ignora arquivos temporários ou de backup criados por editores (como vi, vim, Sublime)
+*~
+*.swp
+*.sublime-workspace
+*.sublime-project
+
+# Ignora a pasta do Git (não inclui arquivos versionados no Docker)
+.git/
+.gitignore
+
+# Ignora arquivos específicos de plataforma (Windows, macOS)
+*.bak
+*.swp

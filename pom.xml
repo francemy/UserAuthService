@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.5</version>
+        <version>3.3.5</version> <!-- Certifique-se de usar uma versão do Spring Boot que suporte Java 23 -->
         <relativePath /> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.exemplo</groupId>
@@ -15,15 +15,22 @@
     <name>usermanagement</name>
     <description>Demo project for Spring Boot</description>
     <properties>
-        <java.version>23</java.version>
+        <java.version>23</java.version> <!-- Garantir que o Java 23 seja usado -->
         <org.mapstruct.version>1.6.3</org.mapstruct.version>
         <spring-security.version>6.3.4</spring-security.version>
     </properties>
+
     <dependencies>
+        <!-- Dependências podem ser deixadas sem versão se já forem gerenciadas pelo
+        spring-boot-starter-parent -->
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
             <version>${org.mapstruct.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.session</groupId>
+            <artifactId>spring-session-data-redis</artifactId>
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
@@ -45,7 +52,6 @@
         <dependency>
             <groupId>jakarta.persistence</groupId>
             <artifactId>jakarta.persistence-api</artifactId>
-            <version>3.1.0</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -72,19 +78,17 @@
             <artifactId>spring-session-core</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-core</artifactId>
+        </dependency>
+        <dependency>
             <groupId>io.github.cdimascio</groupId>
             <artifactId>dotenv-java</artifactId>
             <version>3.0.2</version>
         </dependency>
         <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-core</artifactId>
-            <version>6.3.4</version>
-        </dependency>
-        <dependency>
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
-            <version>6.5.3.Final</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -95,12 +99,17 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.junit.vintage</groupId>
+                    <artifactId>junit-vintage-engine</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -122,15 +131,15 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version> <!-- Ou outra versão compatível -->
+                <version>3.13.0</version> <!-- Verifique se a versão do plugin é compatível -->
                 <configuration>
-                    <source>1.8</source> <!-- ou a versão que você está usando -->
-                    <target>1.8</target> <!-- ou a versão que você está usando -->
+                    <source>1.8</source> <!-- Usar a versão correta do Java -->
+                    <target>1.8</target> <!-- Usar a versão correta do Java -->
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.mapstruct</groupId>
                             <artifactId>mapstruct-processor</artifactId>
-                            <version>1.5.2.Final</version> <!-- ou outra versão compatível -->
+                            <version>1.6.3</version> <!-- Ou a versão que você está utilizando -->
                         </path>
                     </annotationProcessorPaths>
                 </configuration>

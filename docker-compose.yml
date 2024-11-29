@@ -5,11 +5,10 @@ services:
     container_name: usermanagement-container
     ports:
       - "8080:8080"
+    env_file:
+      - .env
     environment:
-      SPRING_PROFILES_ACTIVE: dev
-      DATABASE_URL: jdbc:postgresql://postgres-db:5432/UserAccessControlDB
-      DATABASE_USER: postgres
-      DATABASE_PASSWORD: 1234
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
     networks:
       - app_network
     depends_on:

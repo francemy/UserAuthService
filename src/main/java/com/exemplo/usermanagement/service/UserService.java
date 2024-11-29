@@ -6,10 +6,9 @@ import com.exemplo.usermanagement.dto.loginUserDTO;
 import com.exemplo.usermanagement.exception.InvalidPasswordException;
 import com.exemplo.usermanagement.exception.UserNotFoundException;
 import com.exemplo.usermanagement.model.User;
-import com.exemplo.usermanagement.model.UserSession;
 import com.exemplo.usermanagement.repository.UserRepository;
-import com.exemplo.usermanagement.repository.UserSessionRepository;
 import com.exemplo.usermanagement.security.JwtTokenUtil;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,9 +23,6 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
-
-    @Autowired
-    private UserSessionService userSessionService;
 
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
@@ -67,8 +63,7 @@ public String loginUser(loginUserDTO userDTO) {
     JwtPayload payload = new JwtPayload(user.getUsername(), user.getEmail(), user.getId());
 
     String token = jwtTokenUtil.generateToken(payload);
-    userSessionService.saveUserSession(payload.getUserId(), token);
-
+    jwtTokenUtil.saveJwtTokenToSession(token);
     return token;
 }
 

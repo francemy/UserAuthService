@@ -1,23 +1,18 @@
-# Definir variáveis do projeto
+# Variáveis do projeto
 PROJECT_NAME=usermanagement
 TARGET_DIR=target
 MAVEN_CMD=mvn
-# Git commands
-BRANCH=$(shell git branch --show-current) # Branch atual
+IMAGE_NAME=usermanagement
+CONTAINER_NAME=usermanagement-container
+CONTAINER_REDIS=redis
+CONTAINER_NGINX=nginx_proxy
 MESSAGE="Commit automático" # Mensagem padrão de commit
-IMAGE_NAME="usermanagement" # Nome da imagem Docker
-CONTAINER_NAME="usermanagement-container"
 
-# Define as variáveis para o build e o comando de execução do Spring Boot
+# Comando para build e execução do Spring Boot
 BUILD_CMD=$(MAVEN_CMD) clean install -DskipTests
 RUN_CMD=$(MAVEN_CMD) spring-boot:run
-# Detecta o sistema operacional
-all: print-message
-# Exibe o sistema operacional detectado
-print-os:
-	@echo "Sistema operacional detectado : $(OS)"
 
-# Define comandos específicos para cada sistema operacional
+# Detectar sistema operacional
 ifeq ($(OS),Windows_NT)
     IS_WINDOWS := true
     RM = del /F /Q
@@ -26,221 +21,122 @@ ifeq ($(OS),Windows_NT)
     TOUCH = type nul >
     SHELL := powershell.exe
     CLEAR_CMD = @powershell -Command "Clear-Host"
-    SLEEP := @timeout /t
-    STOP_CMD := for /f "tokens=*" %%i in ('docker ps -a -q') do docker stop %%i
-    REMOVE_CMD = for /f "tokens=*" %%i in ('docker ps -a -q') do docker rm -v %%i
-    VOLUME_PRUNE = docker volume prune -f
-    CHECK_GIT_DIFF := @git diff --quiet > nul 2>&1 || (echo "Alterações detectadas." && exit /b 1)
+    SLEEP = timeout /t
+    READ = powershell -Command "Read-Host 'Digite os caminhos:'"
+	DOCKER_STOP_CMD := powershell -Command docker ps -q | % { docker stop $_ }
+	DOCKER_RM_CMD := powershell -Command "docker ps -a -q | ForEach-Object { docker rm $_ }"
 else
     IS_WINDOWS := false
     RM = rm -f
     MKDIR = mkdir -p
     RMDIR = rm -rf
     TOUCH = touch
-    CLEAR_CMD = @clear # No Linux, usar clear
-    SLEEP := @sleep
-    STOP_CMD := docker ps -a -q | xargs docker stop
-    REMOVE_CMD = docker ps -a -q | xargs docker rm -v
-    VOLUME_PRUNE = docker volume prune -f
-    CHECK_GIT_DIFF :=  @if git diff --quiet; then echo "Nenhuma alteração detectada, sem necessidade de commit e push."; exit 0; fi
+    CLEAR_CMD = clear
+    SLEEP = sleep
+    READ = read -p "Digite os caminhos: "
+	DOCKER_STOP_CMD := @docker stop $(docker ps -q)
+	DOCKER_RM_CMD := docker ps -a -q | xargs -r docker rm
 endif
 
-# Regra para construir o projeto (compilação e teste)
+# Regras principais
+all: help
+
+# Build do projeto
 build:
 	@echo "Iniciando o processo de build..."
 	$(BUILD_CMD)
 	@echo "Build concluído com sucesso!"
 
-# Regra para rodar o aplicativo Spring Boot
 run:
 	@echo "Iniciando a aplicação Spring Boot..."
 	$(RUN_CMD)
-	@echo "Aplicação finalizada."
+	@echo "Aplicação encerrada."
 
-# Regra para limpar o projeto (limpar arquivos temporários e artefatos)
 clean:
 	@echo "Limpando o projeto e removendo artefatos gerados..."
 	$(MAVEN_CMD) clean
 	@echo "Limpeza concluída!"
 
-# Regra para gerar o arquivo JAR
 package:
 	@echo "Gerando o arquivo JAR..."
 	$(MAVEN_CMD) package
 	@echo "Arquivo JAR gerado com sucesso em $(TARGET_DIR)!"
 
-# Docker e Docker Compose
+# Docker
 docker-build:
 	@echo "Construindo a imagem Docker..."
-	docker build -t $(PROJECT_NAME) .
+	docker build -t $(IMAGE_NAME) .
 	@echo "Imagem Docker construída com sucesso!"
+
+docker-logs:
+	@$(READ) CONTAINER
+	docker logs $(CONTAINER)
 
 docker-run:
 	@echo "Iniciando o contêiner Docker..."
-	docker run -p 8080:8080 $(PROJECT_NAME)
-	@echo "Contêiner Docker encerrado."
+	docker run -p 8080:8080 $(IMAGE_NAME)
+	@echo "Contêiner encerrado."
+
+docker-stop:
+	@echo "Parando todos os containers Docker..."
+	$(DOCKER_STOP_CMD)
+	@echo "Encerrando serviços do Docker Compose..."
+	@docker-compose down
+
+docker-clean-all:
+	@echo "Parando todos os containers Docker..."
+	$(DOCKER_STOP_CMD)
+	@echo "Removendo containers parados..."
+	$(DOCKER_RM_CMD)
+	@echo "Removendo volumes não utilizados..."
+	@docker volume prune -f
+	@echo "Removendo imagens não utilizadas..."
+	@docker image prune -a -f
+	@echo "Removendo redes não utilizadas..."
+	@docker network prune -f
+	@echo "Limpeza concluída!"
 
 docker-clean:
-	@echo "Limpando recursos Docker não utilizados..."
-	docker system prune -f
-	@echo "Recursos Docker limpos!"
+	@echo "Removendo containers parados..."
+	$(DOCKER_RM_CMD)
+	@echo "Removendo volumes não utilizados..."
+	@docker volume prune -f
+	@echo "Removendo imagens não utilizadas..."
+	@docker image prune -a -f
+	@echo "Removendo redes não utilizadas..."
+	@docker network prune -f
+	@echo "Limpeza concluída!"
 
 docker-compose-up:
-	@echo "Subindo os serviços definidos no docker-compose.yml..."
+	@echo "Subindo os serviços..."
 	docker-compose up -d
 	@echo "Serviços iniciados com sucesso!"
 
 docker-compose-down:
-	@echo "Encerrando os serviços definidos no docker-compose.yml..."
+	@echo "Encerrando os serviços..."
 	docker-compose down
 	@echo "Serviços encerrados."
 
-docker-clean-all:
-	@echo "Parando e removendo todos os contêineres e volumes..."
-	@$(STOP_CMD)
-	@$(REMOVE_CMD)
-	@$(VOLUME_PRUNE)
-	@echo "Contêineres e volumes removidos com sucesso!"
+docker-health-check:
+	@echo "Verificando saúde da aplicação no contêiner..."
+	curl --silent --fail http://localhost:8080 || (echo "Aplicação não está acessível!" && exit 1)
 
-docker-stop:
-	@echo "Encerrando o contêiner Docker..."
-	docker stop $(PROJECT_NAME)
-	docker rm $(PROJECT_NAME)
+# Gerenciamento de arquivos
+mkdir:
+	@$(READ) FILES
+	@echo "Criando arquivos/diretórios..."
+	@for path in $(FILES); do \
+		if [ ! -e $$path ]; then \
+			if [[ $$path == */ ]]; then \
+				$(MKDIR) $$path; \
+			else \
+				$(TOUCH) $$path; \
+			fi; \
+		else \
+			echo "$$path já existe."; \
+		fi; \
+	done
 
-docker-app-health-check:
-	@echo "Verificando a saúde da aplicação no contêiner..."
-	@if $(IS_WINDOWS); then \
-		curl --silent --fail http://localhost:8080; \
-		if ($?) { \
-			echo "Aplicação acessível na porta 8080!"; \
-		} else { \
-			echo "Aplicação não está acessível!" && exit 1; \
-		} \
-	else \
-		curl --silent --fail http://localhost:8080 || (echo "Aplicação não está acessível!" && exit 1); \
-	fi
-
-docker-logs:
-	@echo "Exibindo os logs do contêiner Docker..."
-	docker logs $(CONTAINER_NAME)
-
-# Gerenciamento de arquivos e diretórios
-mdir:
-	@echo "Criando o diretório $(TARGET_DIR)..."
-	$(MKDIR) $(TARGET_DIR)
-	@echo "Diretório $(TARGET_DIR) criado com sucesso!"
-
-rmd:
-	@echo "Removendo o diretório $(TARGET_DIR)..."
-	$(RMDIR) $(TARGET_DIR)
-	@echo "Diretório $(TARGET_DIR) removido."
-
-limpar:
-	@echo "Limpando o terminal... $(CLEAR_CMD)"
-	$(CLEAR_CMD)
-
-check-file-exists:
-	@echo "Verificando se o arquivo example-file.txt existe em $(TARGET_DIR)..."
-	@if [ -f "$(TARGET_DIR)/example-file.txt" ]; then \
-		echo "O arquivo example-file.txt existe."; \
-	else \
-		echo "O arquivo example-file.txt não existe."; \
-	fi
-
-check-dir-exists:
-	@echo "Verificando se o diretório $(TARGET_DIR) existe..."
-	@if [ -d "$(TARGET_DIR)" ]; then \
-		echo "O diretório $(TARGET_DIR) existe."; \
-	else \
-		echo "O diretório $(TARGET_DIR) não existe."; \
-	fi
-
-jar:
-	@echo "Criando o arquivo JAR do projeto..."
-	$(MAVEN_CMD) clean package
-	@echo "Arquivo JAR gerado com sucesso em $(TARGET_DIR)!"
-
-run-jar:
-	@echo "Executando o arquivo JAR do projeto..."
-	java -jar $(TARGET_DIR)/$(PROJECT_NAME).jar
-	@echo "Aplicação encerrada."
-
-update-deps:
-	@echo "Atualizando dependências do projeto..."
-	$(MAVEN_CMD) clean install
-	@echo "Dependências atualizadas com sucesso!"
-
-# Verificar status do repositório
-status:
-	@echo "Verificando status do repositório..."
-	git status
-
-# Adicionar todas as alterações ao stage
-add:
-	@echo "Adicionando todas as alterações ao stage..."
-	git add .
-
-# Commit com mensagem padrão ou personalizada
-commit:
-	@if [ -z "$(message)" ]; then \
-		echo "Realizando commit com a mensagem padrão: $(MESSAGE)..."; \
-		git commit -m "$(MESSAGE)"; \
-	else \
-		echo "Realizando commit com a mensagem personalizada: $(message)..."; \
-		git commit -m "$(message)"; \
-	fi
-
-# Enviar alterações para a branch atual
-push:
-	@echo "Enviando alterações para a branch $(BRANCH)..."
-	git push origin $(BRANCH)
-
-# Verificar alterações antes do commit
-CHECK-GIT-DIFF:
-	@echo "Verificando alterações..."
-	ifeq ($(OS),Windows_NT)
-		git diff --quiet || (echo "Alterações detectadas." && exit 1)
-	else
-		git diff --quiet || (echo "Alterações detectadas." && exit 1)
-	endif
-
-
-# Atualizar a branch atual com alterações remotas
-pull:
-	@echo "Atualizando a branch $(BRANCH) com alterações remotas..."
-	git pull origin $(BRANCH)
-
-# Criar uma nova branch
-new-branch:
-	@echo "Criando a nova branch: $(BRANCH_NAME)..."
-	git checkout -b $(BRANCH_NAME)
-
-# Trocar para uma branch existente
-switch-branch:
-	@echo "Trocando para a branch existente: $(BRANCH_NAME)..."
-	git checkout $(BRANCH_NAME)
-
-# Excluir uma branch local
-delete-branch:
-	@echo "Excluindo a branch local: $(BRANCH_NAME)..."
-	git branch -d $(BRANCH_NAME)
-
-# Listar todas as branches locais
-branches:
-	@echo "Listando todas as branches locais..."
-	git branch
-
-# Excluir uma branch remota
-delete-remote-branch:
-	@echo "Excluindo a branch remota: $(BRANCH_NAME)..."
-	git push origin --delete $(BRANCH_NAME)
-
-# Verificar logs do Git
-log:
-	@echo "Exibindo logs do Git..."
-	git log --oneline --graph --decorate --all
-
-# Comandos informativos e de ajuda
 help:
 	@echo "Comandos disponíveis no Makefile:"
 	@echo ""
@@ -270,16 +166,3 @@ help:
 	@echo " - make rmd: Remover o diretório $(TARGET_DIR)."
 	@echo " - make check-file-exists: Verificar se o arquivo example-file.txt existe."
 	@echo " - make check-dir-exists: Verificar se o diretório $(TARGET_DIR) existe."
-
-# Testar se o Docker está em execução corretamente no sistema
-docker-health-check:
-	@echo "Verificando se o Docker está em execução no sistema..."
-	@if $(IS_WINDOWS); then \
-		docker info >/dev/null || (echo "Docker não está em execução!" && exit 1); \
-	else \
-		docker info >/dev/null || (echo "Docker não está em execução!" && exit 1); \
-	fi
-	@echo "Docker está em execução corretamente!"
-
-# Definir meta-alvos padrão
-.DEFAULT_GOAL := help
