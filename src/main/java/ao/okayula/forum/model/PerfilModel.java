@@ -2,6 +2,8 @@ package ao.okayula.forum.model;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -13,6 +15,7 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
 @Entity
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @Table(name = "perfil")
 public class PerfilModel {
 
@@ -78,4 +81,16 @@ public class PerfilModel {
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
+
+    @Override
+    public String toString() {
+        return "{"
+                + "\"id\": " + id + ","
+                + "\"usuario\": " + (usuario != null ? "\"" + usuario.getUsername() + "\"" : null) + ","
+                + "\"descricao\": \"" + (descricao != null ? descricao : "") + "\","
+                + "\"fotoUrl\": \"" + (fotoUrl != null ? fotoUrl : "") + "\","
+                + "\"createdAt\": \"" + (createdAt != null ? createdAt.toString() : "") + "\""
+                + "}";
+    }
+
 }

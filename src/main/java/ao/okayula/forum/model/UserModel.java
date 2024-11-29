@@ -2,6 +2,7 @@ package ao.okayula.forum.model;
 
 import java.time.LocalDateTime;
 
+import ao.okayula.forum.validation.ValueOfEnum;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -39,6 +40,7 @@ public class UserModel {
 
     @NotNull(message = "Role is required")
     @Column(nullable = false)
+    @ValueOfEnum(message = "Role must be either 'USER' or 'ADMIN'")
     private String role;
 
     @Column(name = "created_at", updatable = false)

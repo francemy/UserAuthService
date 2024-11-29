@@ -12,5 +12,7 @@ public interface PerfilRepository extends JpaRepository<PerfilModel, Long> {
     // Buscar perfil pelo usuário
     Optional<PerfilModel> findByUsuarioId(Long usuarioId);
 
+    Optional<PerfilModel> findByUsuarioUsername(String nomeUsuario);
+
     // Outros métodos de consulta podem ser adicionados conforme necessário
 }

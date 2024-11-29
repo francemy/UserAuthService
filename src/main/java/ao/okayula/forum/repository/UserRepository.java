@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import ao.okayula.forum.model.UserModel;
 
 @Repository
-public interface UserRepository extends JpaRepository<UserModel, String> {
+public interface UserRepository extends JpaRepository<UserModel, Long> {
 
     // Método para buscar usuário pelo nome de usuário (username)
     Optional<UserModel> findByUsername(String username);

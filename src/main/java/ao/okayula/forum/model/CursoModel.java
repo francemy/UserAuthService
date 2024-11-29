@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
 
 @Entity
 @Table(name = "cursos")
@@ -23,15 +24,17 @@ public class CursoModel {
     private Long id;
 
     @Column(unique = true, nullable = false)
+    @NotBlank(message = "O nome do curso não pode ser vazio")
     private String nome;
 
     @Column(nullable = false)
+    @NotBlank(message = "A descrição do curso não pode ser vazia")
     private String descricao;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "curso", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "curso", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<TopicoModel> topicos = new HashSet<>();
 
     @PrePersist
@@ -40,6 +43,7 @@ public class CursoModel {
     }
 
     // Getters e Setters
+
     public Long getId() {
         return id;
     }
@@ -78,5 +82,10 @@ public class CursoModel {
 
     public void setTopicos(Set<TopicoModel> topicos) {
         this.topicos = topicos;
+    }
+
+    @Override
+    public String toString() {
+        return "CursoModel [id=" + id + ", nome=" + nome + ", descricao=" + descricao + ", createdAt=" + createdAt + "]";
     }
 }

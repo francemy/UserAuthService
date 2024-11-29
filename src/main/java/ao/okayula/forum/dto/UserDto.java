@@ -1,5 +1,6 @@
 package ao.okayula.forum.dto;
 
+import ao.okayula.forum.validation.ValueOfEnum;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -20,6 +21,7 @@ public class UserDto {
 
     // Papel do usuário (ADMIN, USER)
     @NotBlank(message = "Role is required")
+    @ValueOfEnum(message = "Role must be either 'USER' or 'ADMIN'")
     private String role;
 
     // Getters e Setters
