@@ -41,7 +41,10 @@ Este projeto é uma API RESTful para gerenciar um fórum de cursos, tópicos e r
 - `POST /api/perfis` - Cria ou atualiza o perfil de um usuário.
 
 ### **Autenticação**
-- `POST /login` - Realiza login de um usuário e retorna um token JWT para autenticação.
+- `/api/v1/users/login` Realiza login de um usuário e retorna um token JWT para autenticação.
+
+### **criar Perfil**
+- `POST /api/v1/users/create` - Realiza login de um usuário e retorna um token JWT para autenticação.
 
 ## Como Rodar o Projeto
 
@@ -64,14 +67,14 @@ cd forum-api
 
 2. Configure o arquivo `application.properties` com suas credenciais de banco de dados.
 
-Para usar o **MySQL**:
+Para usar o **Postgres**:
 
 ```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/forum
-spring.datasource.username=root
-spring.datasource.password=root
+spring.datasource.url=jdbc:postgresql://xxxxxx:5432/xxxxx
+spring.datasource.username=xxxx
+spring.datasource.password=xxxxx
 spring.jpa.hibernate.ddl-auto=update
-spring.jpa.database-platform=org.hibernate.dialect.MySQL8Dialect
+spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
 ```
 
 Ou use o **H2** (para desenvolvimento local):
@@ -125,11 +128,29 @@ POST /api/respostas
 
 - **Autenticar um usuário (Login):**
 ```bash
-POST /login
+POST /api/v1/users/login
 {
-  "username": "usuario1",
-  "password": "senha123"
+  "username": "admin",
+  "password": "password123"
 }
+
+```
+
+- **criar um usuário :**
+```bash
+POST /api/v1/users/create
+{
+  "username": "john_doe",
+  "email": "john@example.com",
+  "password": "password123",
+  "role": "USER",
+  "perfil": {
+    "descricao": "Software Developer",
+    "fotoUrl": "https://example.com/photo.jpg"
+  }
+}
+
+
 ```
 
 A resposta será um token JWT que deve ser enviado nas requisições subsequentes no cabeçalho `Authorization`.
