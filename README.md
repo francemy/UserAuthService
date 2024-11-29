@@ -15,7 +15,7 @@ Este projeto é uma API RESTful para gerenciar um fórum de cursos, tópicos e r
 - **Spring Boot**: Framework principal para a criação da API.
 - **JPA/Hibernate**: Para persistência de dados no banco de dados.
 - **JWT (JSON Web Tokens)**: Para autenticação e autorização de usuários.
-- **MySQL/H2**: Banco de dados relacional para persistência dos dados (configurável).
+- **PostgresQL/H2**: Banco de dados relacional para persistência dos dados (configurável).
 - **Maven**: Gerenciador de dependências e build do projeto.
 
 ## Endpoints
@@ -54,7 +54,7 @@ Antes de rodar o projeto, verifique se você possui os seguintes softwares insta
 
 - JDK 17 ou superior
 - Maven
-- MySQL ou H2 (Banco de dados configurável)
+- PostgresQL ou H2 (Banco de dados configurável)
 
 ### Passos
 
