@@ -180,6 +180,8 @@ Este projeto está licenciado sob a MIT License - veja o arquivo [LICENSE](LICEN
 6. **Contribuindo**: Orientações sobre como contribuir para o projeto.
 7. **Licença**: Especifica a licença sob a qual o projeto está distribuído.
 
+```
+
 ## **Autor**
 
 - **Nome:** Francemy Eduardo Sebastião
