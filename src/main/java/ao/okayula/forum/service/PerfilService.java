@@ -33,7 +33,7 @@ public class PerfilService {
 
     // Buscar perfil pelo nome do usuário
     public PerfilModel buscarPorNomeUsuario(String nomeUsuario) {
-        System.out.println(nomeUsuario);
+        System.out.println("nome do user:"+nomeUsuario);
         Optional<UserModel> user = userRepository.findByUsername(nomeUsuario);
         Optional<PerfilModel> perfil = perfilRepository.findByUsuarioId(user.get().getId());
         System.out.println(perfil);

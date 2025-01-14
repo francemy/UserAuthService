@@ -1,4 +1,13 @@
 services:
+  app:
+    build: .  # Usa o Dockerfile presente no diretório raiz
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    networks:
+      - app_network
+
   db:
     image: postgres:15
     container_name: postgres-db
@@ -10,13 +19,16 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app_network
   
   adminer:
     image: adminer
     restart: always
     ports:
-      - 8082:8082
-      - 8083:8082
+      - "8082:8080"  # Corrigido a porta para coincidir com a porta padrão do Adminer
+    networks:
+      - app_network
 
   nginx:
     image: nginx:latest
@@ -25,7 +37,11 @@ services:
       - "8081:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - app_network
+
+networks:
+  app_network:
 
 volumes:
-  postgres_data: 
-  
+  postgres_data:

@@ -11,6 +11,7 @@ import ao.okayula.forum.dto.ChangePasswordDTO;
 import ao.okayula.forum.dto.LoginUserDTO;
 import ao.okayula.forum.dto.UserDto;
 import ao.okayula.forum.dto.UserFormDTO;
+import ao.okayula.forum.exception.DuplicateEmailException;
 import ao.okayula.forum.exception.ResourceNotFoundException;
 import ao.okayula.forum.exception.UserNotFoundException;
 import ao.okayula.forum.model.PerfilModel;
@@ -40,21 +41,32 @@ public class UserService {
     private PerfilRepository perfilRepository;
 
     public UserModel createUserWithProfile(UserFormDTO userFormDTO) {
-        // Criar o usuário
+        // Verificar se o email já existe
+        Optional<UserModel> existingUser = userRepository.findByEmail(userFormDTO.getEmail());
         UserModel user = new UserModel();
         user.setUsername(userFormDTO.getUsername());
         user.setEmail(userFormDTO.getEmail());
         user.setPassword(passwordEncoder.encode(userFormDTO.getPassword()));
         user.setRole(userFormDTO.getRole());
-
-        // Salvar o usuário
-        userRepository.save(user);
-
-        // Criar o perfil e associar ao usuário
         PerfilModel perfil = new PerfilModel();
         perfil.setDescricao(userFormDTO.getPerfil().getDescricao());
         perfil.setFotoUrl(userFormDTO.getPerfil().getFotoUrl());
-        perfil.setUsuario(user); // Associar o perfil ao usuário
+        // Associar o perfil ao usuário
+        if (existingUser.isPresent()) {
+            // Lançar uma exceção ou retornar uma resposta indicando que o email já está em
+            // uso
+           // throw new DuplicateEmailException("Email já cadastrado. Por favor, escolha outro email.");
+           perfil.setUsuario(existingUser.get()); 
+
+        } else {
+            // Criar o usuário
+           
+
+            // Salvar o usuário
+            userRepository.save(user);
+            perfil.setUsuario(user); 
+
+        }
 
         // Salvar o perfil
         perfilRepository.save(perfil);
@@ -133,66 +145,67 @@ public class UserService {
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
     }
 
-    /* // Atualizar um usuário
-    public UserModel updateUser(Long id, UserFormDTO userFormDTO) {
-
-        Optional<UserModel> userR = userRepository.findById(id);
-        if (userR.isPresent()) {
-            UserModel user = userR.get();
-            user.setUsername(userFormDTO.getUsername());
-            
-            user.setEmail(userFormDTO.getEmail());
-            user.setPassword(passwordEncoder.encode(userFormDTO.getPassword()));
-            user.setRole(userFormDTO.getRole());
-
-            // Salvar o usuário
-            userRepository.save(user);
-
-            // Criar o perfil e associar ao usuário
-            Optional<PerfilModel> perfilR =  perfilRepository.findByUsuarioId(id);
-            PerfilModel perfil;
-            if(perfilR.isPresent())
-                perfil = perfilR.get();
-            else
-                perfil = new PerfilModel();
-            perfil.setDescricao(userFormDTO.getPerfil().getDescricao());
-            perfil.setFotoUrl(userFormDTO.getPerfil().getFotoUrl());
-            perfil.setUsuario(user); // Associar o perfil ao usuário
-
-            // Salvar o perfil
-            perfilRepository.save(perfil);
-        }
-        return userR.get();
-    } */
+    /*
+     * // Atualizar um usuário
+     * public UserModel updateUser(Long id, UserFormDTO userFormDTO) {
+     * 
+     * Optional<UserModel> userR = userRepository.findById(id);
+     * if (userR.isPresent()) {
+     * UserModel user = userR.get();
+     * user.setUsername(userFormDTO.getUsername());
+     * 
+     * user.setEmail(userFormDTO.getEmail());
+     * user.setPassword(passwordEncoder.encode(userFormDTO.getPassword()));
+     * user.setRole(userFormDTO.getRole());
+     * 
+     * // Salvar o usuário
+     * userRepository.save(user);
+     * 
+     * // Criar o perfil e associar ao usuário
+     * Optional<PerfilModel> perfilR = perfilRepository.findByUsuarioId(id);
+     * PerfilModel perfil;
+     * if(perfilR.isPresent())
+     * perfil = perfilR.get();
+     * else
+     * perfil = new PerfilModel();
+     * perfil.setDescricao(userFormDTO.getPerfil().getDescricao());
+     * perfil.setFotoUrl(userFormDTO.getPerfil().getFotoUrl());
+     * perfil.setUsuario(user); // Associar o perfil ao usuário
+     * 
+     * // Salvar o perfil
+     * perfilRepository.save(perfil);
+     * }
+     * return userR.get();
+     * }
+     */
 
     public UserModel updateUser(Long id, UserFormDTO userFormDTO) {
         // Buscar o usuário pelo ID
         UserModel user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado com o ID: " + id));
-    
+
         // Atualizar os dados do usuário
         user.setUsername(userFormDTO.getUsername());
         user.setEmail(userFormDTO.getEmail());
         user.setPassword(passwordEncoder.encode(userFormDTO.getPassword()));
         user.setRole(userFormDTO.getRole());
-    
+
         // Salvar as atualizações do usuário
         userRepository.save(user);
-    
+
         // Buscar ou criar o perfil associado ao usuário
         PerfilModel perfil = perfilRepository.findByUsuarioId(id)
                 .orElseGet(PerfilModel::new);
-    
+
         perfil.setDescricao(userFormDTO.getPerfil().getDescricao());
         perfil.setFotoUrl(userFormDTO.getPerfil().getFotoUrl());
         perfil.setUsuario(user); // Associar o perfil ao usuário
-    
+
         // Salvar o perfil atualizado
         perfilRepository.save(perfil);
-    
+
         return user;
     }
-    
 
     public void deleteUser(Long id) {
         // Buscar o usuário pelo ID

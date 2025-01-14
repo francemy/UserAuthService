@@ -20,6 +20,7 @@ import ao.okayula.forum.dto.LoginUserDTO;
 import ao.okayula.forum.dto.ResponseDTO;
 import ao.okayula.forum.dto.UserDto;
 import ao.okayula.forum.dto.UserFormDTO;
+import ao.okayula.forum.exception.DuplicateEmailException;
 import ao.okayula.forum.model.PerfilModel;
 import ao.okayula.forum.model.UserModel;
 import ao.okayula.forum.security.JwtTokenUtil;
