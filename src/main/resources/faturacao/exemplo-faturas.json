@@ -1,0 +1,28 @@
+[
+  {
+    "numero": "FT-2024-0001",
+    "dataEmissao": "2024-11-15",
+    "moeda": "AOA",
+    "cliente": {
+      "nome": "Empresa Luanda Tech",
+      "nif": "5001234567",
+      "email": "financeiro@luandatech.ao",
+      "telefone": "+244 923 000 000"
+    },
+    "total": 172500.00,
+    "status": "EMITIDA"
+  },
+  {
+    "numero": "FT-2024-0002",
+    "dataEmissao": "2024-11-16",
+    "moeda": "AOA",
+    "cliente": {
+      "nome": "Kwanza Retail",
+      "nif": "5007654321",
+      "email": "pagamentos@kwanzaretail.ao",
+      "telefone": "+244 933 111 222"
+    },
+    "total": 98500.00,
+    "status": "PAGO"
+  }
+]

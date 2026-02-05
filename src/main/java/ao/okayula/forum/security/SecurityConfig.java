@@ -46,7 +46,12 @@ public class SecurityConfig {
                 // Configura as regras de autorização
                 .authorizeHttpRequests(authorize -> authorize
                 // Define os endpoints públicos
-                .requestMatchers("/api/v1/users/register", "/api/v1/users/login","/api/v1/users/create").permitAll()
+                .requestMatchers(
+                        "/api/v1/users/register",
+                        "/api/v1/users/login",
+                        "/api/v1/users/create",
+                        "/api/faturacao/**")
+                .permitAll()
                 // Todas as outras solicitações requerem autenticação
                 .anyRequest().authenticated()
                 )

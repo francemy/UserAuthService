@@ -1,0 +1,43 @@
+{
+  "numero": "FT-2024-0001",
+  "dataEmissao": "2024-11-15",
+  "moeda": "AOA",
+  "cliente": {
+    "nome": "Empresa Luanda Tech",
+    "nif": "5001234567",
+    "email": "financeiro@luandatech.ao",
+    "telefone": "+244 923 000 000",
+    "endereco": {
+      "rua": "Av. 4 de Fevereiro, 100",
+      "cidade": "Luanda",
+      "provincia": "Luanda",
+      "pais": "Angola",
+      "codigoPostal": "0000"
+    }
+  },
+  "itens": [
+    {
+      "descricao": "Licença anual do sistema",
+      "quantidade": 1,
+      "precoUnitario": 120000.00,
+      "total": 120000.00
+    },
+    {
+      "descricao": "Suporte premium",
+      "quantidade": 1,
+      "precoUnitario": 30000.00,
+      "total": 30000.00
+    }
+  ],
+  "subtotal": 150000.00,
+  "impostos": 22500.00,
+  "desconto": 0.00,
+  "total": 172500.00,
+  "pagamento": {
+    "metodo": "Transferência bancária",
+    "referencia": "TRX-2024-00045",
+    "dataPagamento": "2024-11-15T10:30:00",
+    "valorPago": 172500.00
+  },
+  "status": "EMITIDA"
+}

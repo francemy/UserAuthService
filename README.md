@@ -46,6 +46,14 @@ Este projeto é uma API RESTful para gerenciar um fórum de cursos, tópicos e r
 ### **criar Perfil**
 - `POST /api/v1/users/create` - Realiza login de um usuário e retorna um token JWT para autenticação.
 
+### **Faturação Eletrónica**
+- `GET /api/faturacao/exemplo` - Retorna um exemplo de fatura a partir de um ficheiro JSON.
+- `GET /api/faturacao/exemplos` - Retorna uma lista de faturas de exemplo a partir de um ficheiro JSON.
+- `POST /api/faturacao/faturas` - Emite uma nova fatura eletrónica.
+- `GET /api/faturacao/faturas` - Lista as faturas emitidas em memória.
+- `GET /api/faturacao/faturas/{numero}` - Consulta uma fatura pelo número.
+- `POST /api/faturacao/faturas/{numero}/cancelar` - Cancela uma fatura emitida.
+
 ## Como Rodar o Projeto
 
 ### Pré-requisitos
