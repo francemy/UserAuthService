@@ -46,6 +46,9 @@ Este projeto é uma API RESTful para gerenciar um fórum de cursos, tópicos e r
 ### **criar Perfil**
 - `POST /api/v1/users/create` - Realiza login de um usuário e retorna um token JWT para autenticação.
 
+### **Facturas**
+- `GET /api/facturas/global` - Retorna uma factura global. Exemplo em `docs/exemplos/factura-global.json`.
+
 ## Como Rodar o Projeto
 
 ### Pré-requisitos
@@ -152,6 +155,17 @@ POST /api/v1/users/create
 
 
 ```
+
+### Exemplos de Factura Global
+
+Há apenas um ficheiro de exemplo para evitar duplicação:
+
+- `docs/exemplos/factura-global.json`
+
+Se for necessário manter múltiplos exemplos no futuro, utilize o formato com sufixo e documente cada um de forma explícita, por exemplo:
+
+- `docs/exemplos/fatura-global-1.json`
+- `docs/exemplos/fatura-global-2.json`
 
 A resposta será um token JWT que deve ser enviado nas requisições subsequentes no cabeçalho `Authorization`.
 

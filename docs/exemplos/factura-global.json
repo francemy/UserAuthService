@@ -1,0 +1,31 @@
+{
+  "factura": {
+    "numero": "FG-2024-0001",
+    "data": "2024-09-01",
+    "moeda": "AOA",
+    "cliente": {
+      "nome": "Empresa Exemplo, Lda.",
+      "nif": "5001234567",
+      "email": "financeiro@exemplo.co.ao"
+    },
+    "itens": [
+      {
+        "descricao": "Licença de software",
+        "quantidade": 2,
+        "precoUnitario": 150000,
+        "total": 300000
+      },
+      {
+        "descricao": "Suporte premium",
+        "quantidade": 1,
+        "precoUnitario": 50000,
+        "total": 50000
+      }
+    ],
+    "totais": {
+      "subtotal": 350000,
+      "iva": 52500,
+      "total": 402500
+    }
+  }
+}
